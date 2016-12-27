@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "391630032105",
+    "firebase_url": "https://shopping-list-plus-plus-bf59b.firebaseio.com",
+    "project_id": "shopping-list-plus-plus-bf59b",
+    "storage_bucket": "shopping-list-plus-plus-bf59b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:391630032105:android:e5c656c9725425a9",
+        "android_client_info": {
+          "package_name": "com.maracujasoftware.shoppinglistplusplus"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "391630032105-u41a96t8nsorsq09urdskvqev634jkhq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjbbgk4qHVxwqGXgly7dj5VxMc5cPBJlM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "391630032105-u41a96t8nsorsq09urdskvqev634jkhq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
