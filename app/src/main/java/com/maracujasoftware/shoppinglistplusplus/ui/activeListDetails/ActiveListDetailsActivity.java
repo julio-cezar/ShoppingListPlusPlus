@@ -21,6 +21,7 @@ import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingListItem;
 import com.maracujasoftware.shoppinglistplusplus.ui.BaseActivity;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
+import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
 
 
 /**
@@ -32,6 +33,7 @@ public class ActiveListDetailsActivity extends BaseActivity {
     private ActiveListItemAdapter mActiveListItemAdapter;
     private ListView mListView;
     private String mListId;
+    private boolean mCurrentUserIsOwner = false;
     private ShoppingList mShoppingList;
     private ValueEventListener mActiveListRefListener;
 
@@ -97,6 +99,8 @@ public class ActiveListDetailsActivity extends BaseActivity {
                  */
                 mActiveListItemAdapter.setShoppingList(mShoppingList);
 
+                mCurrentUserIsOwner = Utils.checkIfOwner(shoppingList, mEncodedEmail);
+
                 /* Calling invalidateOptionsMenu causes onCreateOptionsMenu to be called */
                 invalidateOptionsMenu();
 
@@ -153,8 +157,8 @@ public class ActiveListDetailsActivity extends BaseActivity {
         MenuItem archive = menu.findItem(R.id.action_archive);
 
         /* Only the edit and remove options are implemented */
-        remove.setVisible(true);
-        edit.setVisible(true);
+        remove.setVisible(mCurrentUserIsOwner);
+        edit.setVisible(mCurrentUserIsOwner);
         share.setVisible(false);
         archive.setVisible(false);
 

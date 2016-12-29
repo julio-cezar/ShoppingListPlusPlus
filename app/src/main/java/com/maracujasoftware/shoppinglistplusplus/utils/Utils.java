@@ -3,6 +3,8 @@ package com.maracujasoftware.shoppinglistplusplus.utils;
 import android.content.Context;
 
 
+import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
+
 import java.text.SimpleDateFormat;
 
 
@@ -26,5 +28,10 @@ public class Utils {
 
     public static String encodeEmail(String userEmail) {
         return userEmail.replace(".", ",");
+    }
+
+    public static boolean checkIfOwner(ShoppingList shoppingList, String currentUserEmail) {
+        return (shoppingList.getOwner() != null &&
+                shoppingList.getOwner().equals(currentUserEmail));
     }
 }

@@ -91,12 +91,9 @@ public class MainActivity extends BaseActivity {
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        /**
-         * Open SettingsActivity with sort options when Sort icon was clicked
-         */
+      /*  int id = item.getItemId();
+
         if (id == R.id.action_sort) {
-            //startActivity(new Intent(MainActivity.this, SettingsActivity.class));
             return true;
         } else if (id == R.id.action_logout) {
             FirebaseAuth.getInstance().signOut();
@@ -104,7 +101,7 @@ public class MainActivity extends BaseActivity {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             finish();
-        }
+        }*/
         return super.onOptionsItemSelected(item);
     }
 
