@@ -91,17 +91,13 @@ public class MainActivity extends BaseActivity {
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-      /*  int id = item.getItemId();
-
+       int id = item.getItemId();
+        /**
+         +         * Open SettingsActivity with sort options when Sort icon was clicked
+         +         */
         if (id == R.id.action_sort) {
             return true;
-        } else if (id == R.id.action_logout) {
-            FirebaseAuth.getInstance().signOut();
-
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
-            finish();
-        }*/
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -168,13 +164,13 @@ public class MainActivity extends BaseActivity {
              */
             switch (position) {
                 case 0:
-                    fragment = ShoppingListsFragment.newInstance();
+                    fragment = ShoppingListsFragment.newInstance(mEncodedEmail);
                     break;
                 case 1:
                     fragment = MealsFragment.newInstance();
                     break;
                 default:
-                    fragment = ShoppingListsFragment.newInstance();
+                    fragment = ShoppingListsFragment.newInstance(mEncodedEmail);
                     break;
             }
 

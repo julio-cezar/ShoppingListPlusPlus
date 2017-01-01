@@ -236,6 +236,55 @@ public class LoginActivity extends BaseActivity {
          * to be able to use it as a Firebase db key
          */
         mEncodedEmail = Utils.encodeEmail(unprocessedEmail);
+
+        final DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_LOCATION_USERS).child(mEncodedEmail);
+
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                FireUser user = dataSnapshot.getValue(FireUser.class);
+
+                if (user != null) {
+
+                    /**
+                     * If recently registered user has hasLoggedInWithPassword = "false"
+                     * (never logged in using password provider)
+                     */
+                    if (!user.isHasLoggedInWithPassword()) {
+
+                        /**
+                         * Change password if user that just signed in signed up recently
+                         * to make sure that user will be able to use temporary password
+                         * from the email more than 24 hours
+                         */
+                        FirebaseUser FUser = FirebaseAuth.getInstance().getCurrentUser();
+                        String newPassword = mEditTextPasswordInput.getText().toString();
+
+                        FUser.updatePassword(newPassword)
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful()) {
+                                            userRef.child(Constants.FIREBASE_PROPERTY_USER_HAS_LOGGED_IN_WITH_PASSWORD).setValue(true);
+                                        /* The password was changed */
+                                            Log.d(LOG_TAG, getString(R.string.log_message_password_changed_successfully) + mEditTextPasswordInput.getText().toString());
+
+                                        }
+                                    }
+                                });
+
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d(LOG_TAG, getString(R.string.log_error_failed_to_change_password) + databaseError);
+            }
+        });
+
+
+
     }
 
     private void setAuthenticatedUserGoogle(UserInfo profile) {
@@ -329,6 +378,26 @@ public class LoginActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor spe = sp.edit();
+
+        /**
+         * Get the newly registered user email if present, use null as default value
+         */
+        String signupEmail = sp.getString(Constants.KEY_SIGNUP_EMAIL, null);
+
+        /**
+         * Fill in the email editText and remove value from SharedPreferences if email is present
+         */
+        if (signupEmail != null) {
+            mEditTextEmailInput.setText(signupEmail);
+
+            /**
+             * Clear signupEmail sharedPreferences to make sure that they are used just once
+             */
+            spe.putString(Constants.KEY_SIGNUP_EMAIL, null).apply();
+        }
     }
 
     @Override

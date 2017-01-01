@@ -3,17 +3,23 @@ package com.maracujasoftware.shoppinglistplusplus.ui.activeListDetails;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.graphics.Paint;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseListAdapter;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.ValueEventListener;
 import com.maracujasoftware.shoppinglistplusplus.R;
+import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingListItem;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
@@ -27,15 +33,17 @@ import java.util.HashMap;
 public class ActiveListItemAdapter extends FirebaseListAdapter<ShoppingListItem> {
     private ShoppingList mShoppingList;
     private String mListId;
+    private String mEncodedEmail;
 
     /**
      * Public constructor that initializes private instance variables when adapter is created
      */
     public ActiveListItemAdapter(Activity activity, Class<ShoppingListItem> modelClass, int modelLayout,
-                                 Query ref, String listId) {
+                                 Query ref, String listId, String encodedEmail) {
         super(activity, modelClass, modelLayout, ref);
         this.mActivity = activity;
         this.mListId = listId;
+        this.mEncodedEmail = encodedEmail;
     }
 
     /**
@@ -49,9 +57,19 @@ public class ActiveListItemAdapter extends FirebaseListAdapter<ShoppingListItem>
     @Override
     protected void populateView(View view, ShoppingListItem item, int position) {
         ImageButton buttonRemoveItem = (ImageButton) view.findViewById(R.id.button_remove_item);
-        TextView textViewMealItemName = (TextView) view.findViewById(R.id.text_view_active_list_item_name);
+        //TextView textViewMealItemName = (TextView) view.findViewById(R.id.text_view_active_list_item_name);
+        TextView textViewItemName = (TextView) view.findViewById(R.id.text_view_active_list_item_name);
+        final TextView textViewBoughtByUser = (TextView) view.findViewById(R.id.text_view_bought_by_user);
+        TextView textViewBoughtBy = (TextView) view.findViewById(R.id.text_view_bought_by);
 
-        textViewMealItemName.setText(item.getItemName());
+        String owner = item.getOwner();
+
+        textViewItemName.setText(item.getItemName());
+
+
+        setItemAppearanceBaseOnBoughtStatus(owner, textViewBoughtByUser, textViewBoughtBy, buttonRemoveItem,
+                textViewItemName, item);
+        // textViewMealItemName.setText(item.getItemName());
 
         /* Gets the id of the item to remove */
         final String itemToRemoveId = this.getRef(position).getKey();
@@ -107,5 +125,72 @@ public class ActiveListItemAdapter extends FirebaseListAdapter<ShoppingListItem>
 
         /* Do the update */
         firebaseRef.updateChildren(updatedRemoveItemMap);
+    }
+
+    private void setItemAppearanceBaseOnBoughtStatus(String owner, final TextView textViewBoughtByUser,
+                                                     TextView textViewBoughtBy, ImageButton buttonRemoveItem,
+                                                     TextView textViewItemName, ShoppingListItem item) {
+        /**
+         * If selected item is bought
+         * Set "Bought by" text to "You" if current user is owner of the list
+         * Set "Bought by" text to userName if current user is NOT owner of the list
+         * Set the remove item button invisible if current user is NOT list or item owner
+         */
+        if (item.isBought() && item.getBoughtBy() != null) {
+
+            textViewBoughtBy.setVisibility(View.VISIBLE);
+            textViewBoughtByUser.setVisibility(View.VISIBLE);
+            buttonRemoveItem.setVisibility(View.INVISIBLE);
+
+            /* Add a strike-through */
+            textViewItemName.setPaintFlags(textViewItemName.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+
+            if (item.getBoughtBy().equals(mEncodedEmail)) {
+                textViewBoughtByUser.setText(mActivity.getString(R.string.text_you));
+            } else {
+
+                DatabaseReference boughtByUserRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_LOCATION_USERS).child(item.getBoughtBy());
+                /* Get the item's owner's name; use a SingleValueEvent listener for memory efficiency */
+                boughtByUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        FireUser user = dataSnapshot.getValue(FireUser.class);
+                        if (user != null) {
+                            textViewBoughtByUser.setText(user.getName());
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e(mActivity.getClass().getSimpleName(),
+                                mActivity.getString(R.string.log_error_the_read_failed) +
+                                        databaseError.getMessage());
+                    }
+                });
+            }
+        } else {
+            /**
+             * If selected item is NOT bought
+             * Set "Bought by" text to be empty and invisible
+             * Set the remove item button visible if current user is owner of the list or selected item
+             */
+
+            /* Remove the strike-through */
+            textViewItemName.setPaintFlags(textViewItemName.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
+
+            textViewBoughtBy.setVisibility(View.INVISIBLE);
+            textViewBoughtByUser.setVisibility(View.INVISIBLE);
+            textViewBoughtByUser.setText("");
+            /**
+             * If you are the owner of the item or the owner of the list, then the remove icon
+             * is visible.
+             */
+            if (owner.equals(mEncodedEmail) || (mShoppingList != null && mShoppingList.getOwner().equals(mEncodedEmail))) {
+                buttonRemoveItem.setVisibility(View.VISIBLE);
+            } else {
+                buttonRemoveItem.setVisibility(View.INVISIBLE);
+            }
+
+        }
     }
 }

@@ -3,7 +3,9 @@ package com.maracujasoftware.shoppinglistplusplus.ui.login;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.Menu;
@@ -30,6 +32,8 @@ import com.maracujasoftware.shoppinglistplusplus.ui.BaseActivity;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
 import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,12 +44,14 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
     private static final String LOG_TAG = CreateAccountActivity.class.getSimpleName();
     private ProgressDialog mAuthProgressDialog;
     //private DatabaseReference mFirebaseRef;
-    private EditText mEditTextUsernameCreate, mEditTextEmailCreate, mEditTextPasswordCreate;
+    private EditText mEditTextUsernameCreate, mEditTextEmailCreate; //,mEditTextPasswordCreate;
     private String mUserName, mUserEmail, mPassword;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
     private User user;
+
+    private SecureRandom mRandom = new SecureRandom();
 
     private void saveUser(){
 
@@ -59,6 +65,47 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
                 if( !task.isSuccessful() ){
                     mAuthProgressDialog.dismiss();
                 }else{
+                    FirebaseAuth auth = FirebaseAuth.getInstance();
+                    auth.sendPasswordResetEmail(user.getEmail()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Log.i(LOG_TAG, getString(R.string.log_message_auth_successful));
+
+                                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CreateAccountActivity.this);
+                                SharedPreferences.Editor spe = sp.edit();
+
+                                /**
+                                 * Save name and email to sharedPreferences to create User database record
+                                 * when the registered user will sign in for the first time
+                                 */
+                                spe.putString(Constants.KEY_SIGNUP_EMAIL, mUserEmail).apply();
+
+                                /**
+                                 * Encode user email replacing "." with ","
+                                 * to be able to use it as a Firebase db key
+                                 */
+                                createUserInFirebaseHelper();
+
+                                /**
+                                 *  Password reset email sent, open app chooser to pick app
+                                 *  for handling inbox email intent
+                                 */
+                                Intent intent = new Intent(Intent.ACTION_MAIN);
+                                intent.addCategory(Intent.CATEGORY_APP_EMAIL);
+                                try {
+                                    startActivity(intent);
+                                    finish();
+                                } catch (android.content.ActivityNotFoundException ex) {
+                                    /* User does not have any app to handle email */
+                                }
+                            } else{
+                                Log.d(LOG_TAG, getString(R.string.log_error_occurred) );
+                                mAuthProgressDialog.dismiss();
+                            }
+                        }
+                    });
+
                    // String uid = (String) task.getResult().getUser().getUid();
                     createUserInFirebaseHelper();
                 }
@@ -71,6 +118,7 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
             }
         });
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,14 +179,15 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
     public void initializeScreen() {
         mEditTextUsernameCreate = (EditText) findViewById(R.id.edit_text_username_create);
         mEditTextEmailCreate = (EditText) findViewById(R.id.edit_text_email_create);
-        mEditTextPasswordCreate = (EditText) findViewById(R.id.edit_text_password_create);
+       // mEditTextPasswordCreate = (EditText) findViewById(R.id.edit_text_password_create);
         LinearLayout linearLayoutCreateAccountActivity = (LinearLayout) findViewById(R.id.linear_layout_create_account_activity);
         initializeBackground(linearLayoutCreateAccountActivity);
 
         /* Setup the progress dialog that is displayed later when authenticating with Firebase */
         mAuthProgressDialog = new ProgressDialog(this);
         mAuthProgressDialog.setTitle(getResources().getString(R.string.progress_dialog_loading));
-        mAuthProgressDialog.setMessage(getResources().getString(R.string.progress_dialog_creating_user_with_firebase));
+        //mAuthProgressDialog.setMessage(getResources().getString(R.string.progress_dialog_creating_user_with_firebase));
+        mAuthProgressDialog.setMessage(getResources().getString(R.string.progress_dialog_check_inbox));
         mAuthProgressDialog.setCancelable(false);
     }
 
@@ -158,15 +207,17 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
     public void onCreateAccountPressed(View view) {
         mUserName = mEditTextUsernameCreate.getText().toString();
         mUserEmail = mEditTextEmailCreate.getText().toString().toLowerCase();
-        mPassword = mEditTextPasswordCreate.getText().toString();
+        mPassword = new BigInteger(130, mRandom).toString(32);
+       // mPassword = mEditTextPasswordCreate.getText().toString();
 
         /**
          * Check that email and user name are okay
          */
         boolean validEmail = isEmailValid(mUserEmail);
         boolean validUserName = isUserNameValid(mUserName);
-        boolean validPassword = isPasswordValid(mPassword);
-        if (!validEmail || !validUserName || !validPassword) return;
+        //boolean validPassword = isPasswordValid(mPassword);
+        //if (!validEmail || !validUserName || !validPassword) return;
+        if (!validEmail || !validUserName) return;
 
         /**
          * If everything was valid show the progress dialog to indicate that
@@ -235,13 +286,13 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
         return true;
     }
 
-    private boolean isPasswordValid(String password) {
+    /*private boolean isPasswordValid(String password) {
         if (password.length() < 6) {
             mEditTextPasswordCreate.setError(getResources().getString(R.string.error_invalid_password_not_valid));
             return false;
         }
         return true;
-    }
+    }/*
 
     /**
      * Show error toast to users
