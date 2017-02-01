@@ -15,6 +15,7 @@ public class ShoppingList {
     private String owner;
     private HashMap<String, Object> timestampLastChanged;
     private HashMap<String, Object> timestampCreated;
+    private HashMap<String, Object> timestampLastChangedReverse;
     private HashMap<String, FireUser> usersShopping;
 
     /**
@@ -36,6 +37,7 @@ public class ShoppingList {
         HashMap<String, Object> timestampNowObject = new HashMap<String, Object>();
         timestampNowObject.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
         this.timestampLastChanged = timestampNowObject;
+        this.timestampLastChangedReverse = null;
         this.usersShopping = new HashMap<>();
     }
 
@@ -48,8 +50,18 @@ public class ShoppingList {
         return usersShopping;
     }
 
+    public void setTimestampLastChangedToNow() {
+        HashMap<String, Object> timestampNowObject = new HashMap<String, Object>();
+        timestampNowObject.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
+        this.timestampLastChanged = timestampNowObject;
+    }
+
     public String getOwner() {
         return owner;
+    }
+
+    public HashMap<String, Object> getTimestampLastChangedReverse() {
+        return timestampLastChangedReverse;
     }
 
     public HashMap<String, Object> getTimestampLastChanged() {
@@ -65,10 +77,17 @@ public class ShoppingList {
 
         return (long) timestampLastChanged.get(Constants.FIREBASE_PROPERTY_TIMESTAMP);
     }
-
+/*
     @Exclude
     public long getTimestampCreatedLong() {
         return (long) timestampLastChanged.get(Constants.FIREBASE_PROPERTY_TIMESTAMP);
+    }*/
+
+
+    @Exclude
+    public long getTimestampLastChangedReverseLong() {
+
+        return (long) timestampLastChangedReverse.get(Constants.FIREBASE_PROPERTY_TIMESTAMP);
     }
 
 

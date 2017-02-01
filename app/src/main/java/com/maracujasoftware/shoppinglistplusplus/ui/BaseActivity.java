@@ -17,6 +17,8 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -36,6 +38,7 @@ public abstract class BaseActivity extends AppCompatActivity implements GoogleAp
     protected GoogleApiClient mGoogleApiClient;
     protected FirebaseAuth.AuthStateListener mAuthListener;
     private FirebaseAuth mAuth;
+    protected DatabaseReference mFirebaseRef;
 
     SharedPreferences sp;
 
@@ -59,6 +62,8 @@ public abstract class BaseActivity extends AppCompatActivity implements GoogleAp
         mProvider = sp.getString(Constants.KEY_PROVIDER, null);
 
         if (!((this instanceof LoginActivity) || (this instanceof CreateAccountActivity))) {
+            mFirebaseRef =  FirebaseDatabase.getInstance().getReference();
+
             mAuth = FirebaseAuth.getInstance();
             mAuthListener = getFirebaseAuthResultHandler();
             mAuth.addAuthStateListener(mAuthListener);
@@ -104,6 +109,14 @@ public abstract class BaseActivity extends AppCompatActivity implements GoogleAp
 
     protected void logout() {
         FirebaseAuth.getInstance().signOut();
+        // Google sign out
+        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+                new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(@NonNull Status status) {
+
+                    }
+                });
         takeUserToLoginScreenOnUnAuth();
     }
 

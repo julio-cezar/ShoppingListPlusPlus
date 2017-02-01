@@ -14,14 +14,18 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.maracujasoftware.shoppinglistplusplus.R;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
+import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Adds a new shopping list
@@ -30,7 +34,7 @@ public class AddListDialogFragment extends DialogFragment {
     String mEncodedEmail;
     EditText mEditTextListName;
 
-   // private FirebaseAuth mAuth;
+    // private FirebaseAuth mAuth;
     //private FirebaseAuth.AuthStateListener authStateListener;
 
 
@@ -121,24 +125,24 @@ public class AddListDialogFragment extends DialogFragment {
      */
     public void addShoppingList() {
 
-        //mRef.child("users").child(mAuth.getCurrentUser().getUid()).child("pontos").setValue(userEnteredName);
-        //DatabaseReference mRef;
-        //mRef = FirebaseDatabase.getInstance().getReference();
         String userEnteredName = mEditTextListName.getText().toString();
-
-        //ShoppingList currentList = new ShoppingList(userEnteredName, owner);
-        //mRef.child(Constants.FIREBASE_LOCATION_ACTIVE_LIST).setValue(currentList);
 
         if (!userEnteredName.equals("")) {
 
             /**
              * Create Firebase references
              */
-            DatabaseReference listsRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_LOCATION_ACTIVE_LISTS);
-            DatabaseReference newListRef = listsRef.push();
+            DatabaseReference userListsRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_LOCATION_USER_LISTS)
+                    .child(mEncodedEmail);
+            final DatabaseReference firebaseRef = FirebaseDatabase.getInstance().getReference();
+
+            DatabaseReference newListRef = userListsRef.push();
 
             /* Save listsRef.push() to maintain same random Id */
             final String listId = newListRef.getKey();
+
+            /* HashMap for data to update */
+            HashMap<String, Object> updateShoppingListData = new HashMap<>();
 
             /**
              * Set raw version of date to the ServerValue.TIMESTAMP value and save into
@@ -151,8 +155,20 @@ public class AddListDialogFragment extends DialogFragment {
             ShoppingList newShoppingList = new ShoppingList(userEnteredName, mEncodedEmail,
                     timestampCreated);
 
-            /* Add the shopping list */
-            newListRef.setValue(newShoppingList);
+            HashMap<String, Object> shoppingListMap = (HashMap<String, Object>)
+                    new ObjectMapper().convertValue(newShoppingList, Map.class);
+
+            Utils.updateMapForAllWithValue(null,listId, mEncodedEmail,
+                    updateShoppingListData, "", shoppingListMap);
+
+            firebaseRef.updateChildren(updateShoppingListData, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    /* Updates the reversed timestamp */
+                    Utils.updateTimestampReversed(databaseError, "AddList", listId,
+                            null, mEncodedEmail);
+                }
+            });
 
             /* Close the dialog fragment */
             AddListDialogFragment.this.getDialog().cancel();
@@ -177,43 +193,43 @@ public class AddListDialogFragment extends DialogFragment {
             */
 
             /* Save listsRef.push() to maintain same random Id */
-            //final String listId = newListRef.getKey();
+        //final String listId = newListRef.getKey();
 
             /* HashMap for data to update */
-           // HashMap<String, Object> updateShoppingListData = new HashMap<>();
+        // HashMap<String, Object> updateShoppingListData = new HashMap<>();
 
-            /**
-             * Set raw version of date to the ServerValue.TIMESTAMP value and save into
-             * timestampCreatedMap
-             */
-          //  HashMap<String, Object> timestampCreated = new HashMap<>();
-            //timestampCreated.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
+        /**
+         * Set raw version of date to the ServerValue.TIMESTAMP value and save into
+         * timestampCreatedMap
+         */
+        //  HashMap<String, Object> timestampCreated = new HashMap<>();
+        //timestampCreated.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
 
             /* Build the shopping list */
-            //ShoppingList newShoppingList = new ShoppingList(userEnteredName, mEncodedEmail,
-                 //   timestampCreated);
+        //ShoppingList newShoppingList = new ShoppingList(userEnteredName, mEncodedEmail,
+        //   timestampCreated);
 
-           // HashMap<String, Object> shoppingListMap = (HashMap<String, Object>)
-             //       new ObjectMapper().convertValue(newShoppingList, Map.class);
+        // HashMap<String, Object> shoppingListMap = (HashMap<String, Object>)
+        //       new ObjectMapper().convertValue(newShoppingList, Map.class);
 
-           // Utils.updateMapForAllWithValue(null, listId, mEncodedEmail,
-              //      updateShoppingListData, "", shoppingListMap);
+        // Utils.updateMapForAllWithValue(null, listId, mEncodedEmail,
+        //      updateShoppingListData, "", shoppingListMap);
 
-           // updateShoppingListData.put("/" + Constants.FIREBASE_LOCATION_OWNER_MAPPINGS + "/" + listId,
-             //       mEncodedEmail);
+        // updateShoppingListData.put("/" + Constants.FIREBASE_LOCATION_OWNER_MAPPINGS + "/" + listId,
+        //       mEncodedEmail);
 
             /* Do the update */
-           // firebaseRef.updateChildren(updateShoppingListData, new Firebase.CompletionListener() {
-             //   @Override
-               // public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+        // firebaseRef.updateChildren(updateShoppingListData, new Firebase.CompletionListener() {
+        //   @Override
+        // public void onComplete(FirebaseError firebaseError, Firebase firebase) {
                     /* Now that we have the timestamp, update the reversed timestamp */
-                 //   Utils.updateTimestampReversed(firebaseError, "AddList", listId,
-                   //         null, mEncodedEmail);
-                //}
-            //});
+        //   Utils.updateTimestampReversed(firebaseError, "AddList", listId,
+        //         null, mEncodedEmail);
+        //}
+        //});
 
             /* Close the dialog fragment */
-       // }
+        // }
     }
 
     @Override

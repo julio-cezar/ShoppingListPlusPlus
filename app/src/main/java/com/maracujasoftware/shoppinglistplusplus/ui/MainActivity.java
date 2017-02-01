@@ -96,6 +96,7 @@ public class MainActivity extends BaseActivity {
          +         * Open SettingsActivity with sort options when Sort icon was clicked
          +         */
         if (id == R.id.action_sort) {
+            startActivity(new Intent(MainActivity.this, SettingsActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);

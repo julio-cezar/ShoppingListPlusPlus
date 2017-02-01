@@ -35,6 +35,28 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- TODO Make sure to add the activity -->
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:label="@string/action_settings"  />
+
+        <activity
+            android:name=".ui.sharing.ShareListActivity"
+            android:label="@string/title_activity_share_list"
+            android:parentActivityName=".ui.activeListDetails.ActiveListDetailsActivity"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.activeListDetails.ActiveListDetailsActivity" />
+        </activity>
+        <activity
+            android:name=".ui.sharing.AddFriendActivity"
+            android:label="@string/title_activity_add_friend"
+            android:parentActivityName=".ui.sharing.ShareListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.sharing.ShareListActivity" />
+         </activity>
         <activity
             android:name=".ui.login.CreateAccountActivity"
             android:label="@string/title_activity_create_account"

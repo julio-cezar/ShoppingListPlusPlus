@@ -16,6 +16,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.maracujasoftware.shoppinglistplusplus.R;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
@@ -67,11 +68,6 @@ public class ShoppingListsFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_shopping_lists, container, false);
         initializeScreen(rootView);
 
-        DatabaseReference activeListsRef  = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_LOCATION_ACTIVE_LISTS);
-        mActiveListAdapter = new ActiveListAdapter(getActivity(),ShoppingList.class,R.layout.single_active_list, activeListsRef,mEncodedEmail);
-        mListView.setAdapter(mActiveListAdapter);
-
-
         /**
          * Set interactive bits, such as click events and adapters
          */
@@ -95,9 +91,50 @@ public class ShoppingListsFragment extends Fragment {
 
     }
 
+    /**
+     * Updates the order of mListView onResume to handle sortOrderChanges properly
+     */
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onResume() {
+        super.onResume();
+        final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortOrder = sharedPref.getString(Constants.KEY_PREF_SORT_ORDER_LISTS, Constants.ORDER_BY_KEY);
+
+        Query orderedActiveUserListsRef;
+        DatabaseReference activeListsRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_LOCATION_USER_LISTS)
+                .child(mEncodedEmail);
+        /**
+         * Sort active lists by "date created"
+         * if it's been selected in the SettingsActivity
+         */
+        if (sortOrder.equals(Constants.ORDER_BY_KEY)) {
+            orderedActiveUserListsRef = activeListsRef.orderByKey();
+        } else {
+
+            /**
+             * Sort active by lists by name or datelastChanged. Otherwise
+             * depending on what's been selected in SettingsActivity
+             */
+
+            orderedActiveUserListsRef = activeListsRef.orderByChild(sortOrder);
+        }
+
+        /**
+         * Create the adapter with selected sort order
+         */
+        mActiveListAdapter = new ActiveListAdapter(getActivity(), ShoppingList.class,
+                R.layout.single_active_list, orderedActiveUserListsRef,
+                mEncodedEmail);
+
+        /**
+         * Set the adapter to the mListView
+         */
+        mListView.setAdapter(mActiveListAdapter);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
         mActiveListAdapter.cleanup();
     }
 

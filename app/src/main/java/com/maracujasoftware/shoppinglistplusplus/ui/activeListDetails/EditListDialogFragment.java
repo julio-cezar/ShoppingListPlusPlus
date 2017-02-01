@@ -14,8 +14,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.maracujasoftware.shoppinglistplusplus.R;
+import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
+
+import java.util.HashMap;
 
 
 /**
@@ -25,6 +28,7 @@ public abstract class EditListDialogFragment extends DialogFragment {
     String mListId, mOwner, mEncodedEmail;;
     EditText mEditTextForList;
     int mResource;
+    HashMap mSharedWith;
 
     /**
      * Helper method that creates a basic bundle of all of the information needed to change
@@ -34,8 +38,10 @@ public abstract class EditListDialogFragment extends DialogFragment {
      * @param resource
      * @return
      */
-    protected static Bundle newInstanceHelper(ShoppingList shoppingList, int resource, String listId, String encodedEmail) {
+    protected static Bundle newInstanceHelper(ShoppingList shoppingList, int resource, String listId,
+                                              String encodedEmail, HashMap<String, FireUser> sharedWithUsers) {
         Bundle bundle = new Bundle();
+        bundle.putSerializable(Constants.KEY_SHARED_WITH_USERS, sharedWithUsers);
         bundle.putString(Constants.KEY_LIST_ID, listId);
         bundle.putInt(Constants.KEY_LAYOUT_RESOURCE, resource);
         bundle.putString(Constants.KEY_LIST_OWNER, shoppingList.getOwner());
@@ -49,6 +55,7 @@ public abstract class EditListDialogFragment extends DialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mSharedWith = (HashMap) getArguments().getSerializable(Constants.KEY_SHARED_WITH_USERS);
         mListId = getArguments().getString(Constants.KEY_LIST_ID);
         mResource = getArguments().getInt(Constants.KEY_LAYOUT_RESOURCE);
         mOwner = getArguments().getString(Constants.KEY_LIST_OWNER);

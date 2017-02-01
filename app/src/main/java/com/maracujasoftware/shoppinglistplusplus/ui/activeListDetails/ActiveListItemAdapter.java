@@ -23,6 +23,7 @@ import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingListItem;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
+import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
 
 import java.util.HashMap;
 
@@ -34,6 +35,7 @@ public class ActiveListItemAdapter extends FirebaseListAdapter<ShoppingListItem>
     private ShoppingList mShoppingList;
     private String mListId;
     private String mEncodedEmail;
+    private HashMap<String, FireUser> mSharedWithUsers;
 
     /**
      * Public constructor that initializes private instance variables when adapter is created
@@ -51,6 +53,11 @@ public class ActiveListItemAdapter extends FirebaseListAdapter<ShoppingListItem>
      */
     public void setShoppingList(ShoppingList shoppingList) {
         this.mShoppingList = shoppingList;
+        this.notifyDataSetChanged();
+    }
+
+    public void setSharedWithUsers(HashMap<String, FireUser> sharedWithUsers) {
+        this.mSharedWithUsers = sharedWithUsers;
         this.notifyDataSetChanged();
     }
 
@@ -115,16 +122,20 @@ public class ActiveListItemAdapter extends FirebaseListAdapter<ShoppingListItem>
         updatedRemoveItemMap.put("/" + Constants.FIREBASE_LOCATION_SHOPPING_LIST_ITEMS + "/"
                 + mListId + "/" + itemId, null);
 
-        /* Make the timestamp for last changed */
-        HashMap<String, Object> changedTimestampMap = new HashMap<>();
-        changedTimestampMap.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
+
 
         /* Add the updated timestamp */
-        updatedRemoveItemMap.put("/" + Constants.FIREBASE_LOCATION_ACTIVE_LISTS +
-                "/" + mListId + "/" + Constants.FIREBASE_PROPERTY_TIMESTAMP_LAST_CHANGED, changedTimestampMap);
+        Utils.updateMapWithTimestampLastChanged(mSharedWithUsers,mListId, mShoppingList.getOwner(), updatedRemoveItemMap);
 
         /* Do the update */
-        firebaseRef.updateChildren(updatedRemoveItemMap);
+        firebaseRef.updateChildren(updatedRemoveItemMap, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    /* Updates the reversed timestamp */
+                Utils.updateTimestampReversed(databaseError,  "ActListItemAdap", mListId, mSharedWithUsers,
+                        mShoppingList.getOwner());
+            }
+        });
     }
 
     private void setItemAppearanceBaseOnBoughtStatus(String owner, final TextView textViewBoughtByUser,

@@ -3,12 +3,15 @@ package com.maracujasoftware.shoppinglistplusplus.ui.activeListDetails;
 import android.app.Dialog;
 import android.os.Bundle;
 
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.maracujasoftware.shoppinglistplusplus.R;
+import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
+import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
 
 import java.util.HashMap;
 
@@ -22,10 +25,12 @@ public class EditListItemNameDialogFragment extends EditListDialogFragment {
     /**
      * Public static constructor that creates fragment and passes a bundle with data into it when adapter is created
      */
-    public static EditListItemNameDialogFragment newInstance(ShoppingList shoppingList, String itemName, String itemId, String listId, String encodedEmail) {
+    public static EditListItemNameDialogFragment newInstance(ShoppingList shoppingList, String itemName,
+                                                             String itemId, String listId, String encodedEmail,
+                                                             HashMap<String, FireUser> sharedWithUsers) {
         EditListItemNameDialogFragment editListItemNameDialogFragment = new EditListItemNameDialogFragment();
 
-        Bundle bundle = newInstanceHelper(shoppingList, R.layout.dialog_edit_item, listId, encodedEmail);
+        Bundle bundle = EditListDialogFragment.newInstanceHelper(shoppingList, R.layout.dialog_edit_item, listId, encodedEmail, sharedWithUsers);
         bundle.putString(Constants.KEY_LIST_ITEM_NAME, itemName);
         bundle.putString(Constants.KEY_LIST_ITEM_ID, itemId);
         editListItemNameDialogFragment.setArguments(bundle);
@@ -69,24 +74,26 @@ public class EditListItemNameDialogFragment extends EditListDialogFragment {
         if (!nameInput.equals("") && !nameInput.equals(mItemName)) {
             DatabaseReference firebaseRef =  FirebaseDatabase.getInstance().getReference();
 
-            /* Make a map for the item you are editing the name of */
-            HashMap<String, Object> updatedItemToAddMap = new HashMap<String, Object>();
+             /* Make a map for the item you are changing the name of */
+                        HashMap<String, Object> updatedDataItemToEditMap = new HashMap<String, Object>();
 
             /* Add the new name to the update map*/
-            updatedItemToAddMap.put("/" + Constants.FIREBASE_LOCATION_SHOPPING_LIST_ITEMS + "/"
+            updatedDataItemToEditMap.put("/" + Constants.FIREBASE_LOCATION_SHOPPING_LIST_ITEMS + "/"
                             + mListId + "/" + mItemId + "/" + Constants.FIREBASE_PROPERTY_ITEM_NAME,
                     nameInput);
 
-            /* Make the timestamp for last changed */
-            HashMap<String, Object> changedTimestampMap = new HashMap<>();
-            changedTimestampMap.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
-
-            /* Add the updated timestamp */
-            updatedItemToAddMap.put("/" + Constants.FIREBASE_LOCATION_ACTIVE_LISTS +
-                    "/" + mListId + "/" + Constants.FIREBASE_PROPERTY_TIMESTAMP_LAST_CHANGED, changedTimestampMap);
+            /* Update affected lists timestamps */
+                        Utils.updateMapWithTimestampLastChanged(mSharedWith,mListId, mOwner, updatedDataItemToEditMap);
 
             /* Do the update */
-            firebaseRef.updateChildren(updatedItemToAddMap);
+            firebaseRef.updateChildren(updatedDataItemToEditMap, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    /* Updates the reversed timestamp */
+                    Utils.updateTimestampReversed(databaseError, "EditListItem", mListId,
+                            mSharedWith, mOwner);
+                }
+            });
 
         }
     }

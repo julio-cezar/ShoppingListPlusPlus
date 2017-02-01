@@ -10,14 +10,9 @@ public final class Constants {
 
     /**
      * Constants related to locations in Firebase, such as the name of the node
-     * where active lists are stored (ie "activeLists")
-     */
-    public static final String FIREBASE_LOCATION_ACTIVE_LISTS = "activeLists";
-
-    /**
-     * Constants related to locations in Firebase, such as the name of the node
      * where user lists are stored (ie "userLists")
      */
+
     public static final String FIREBASE_LOCATION_SHOPPING_LIST_ITEMS = "shoppingListItems";
     public static final String FIREBASE_LOCATION_USERS = "users";
     public static final String FIREBASE_LOCATION_USER_LISTS = "userLists";
@@ -52,7 +47,9 @@ public final class Constants {
     public static final String FIREBASE_URL_USER_LISTS = FIREBASE_URL + "/" + FIREBASE_LOCATION_USER_LISTS;
     public static final String FIREBASE_URL_USER_FRIENDS = FIREBASE_URL + "/" + FIREBASE_LOCATION_USER_FRIENDS;
     public static final String FIREBASE_URL_LISTS_SHARED_WITH = FIREBASE_URL + "/" + FIREBASE_LOCATION_LISTS_SHARED_WITH;
+    public static final String FIREBASE_URL_USER_LISTS = FIREBASE_URL + "/" + FIREBASE_LOCATION_USER_LISTS;
 */
+
     /**
      * Constants for bundles, extras and shared preferences keys
      */

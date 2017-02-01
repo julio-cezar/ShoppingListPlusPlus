@@ -4,13 +4,16 @@ package com.maracujasoftware.shoppinglistplusplus.ui.activeListDetails;
         import android.os.Bundle;
 
         import com.fasterxml.jackson.databind.ObjectMapper;
+        import com.google.firebase.database.DatabaseError;
         import com.google.firebase.database.DatabaseReference;
         import com.google.firebase.database.FirebaseDatabase;
         import com.google.firebase.database.ServerValue;
         import com.maracujasoftware.shoppinglistplusplus.R;
+        import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
         import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
         import com.maracujasoftware.shoppinglistplusplus.model.ShoppingListItem;
         import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
+        import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
 
         import java.util.HashMap;
         import java.util.Map;
@@ -24,10 +27,13 @@ public class AddListItemDialogFragment extends EditListDialogFragment {
     /**
      * Public static constructor that creates fragment and passes a bundle with data into it when adapter is created
      */
-    public static AddListItemDialogFragment newInstance(ShoppingList shoppingList,  String listId,String encodedEmail) {
+    public static AddListItemDialogFragment newInstance(ShoppingList shoppingList,  String listId,
+                                                        String encodedEmail,
+                                                        HashMap<String, FireUser> sharedWithUsers) {
         AddListItemDialogFragment addListItemDialogFragment = new AddListItemDialogFragment();
 
-        Bundle bundle = newInstanceHelper(shoppingList, R.layout.dialog_add_item, listId, encodedEmail);
+        Bundle bundle = EditListDialogFragment.newInstanceHelper(shoppingList,
+                R.layout.dialog_add_item, listId, encodedEmail, sharedWithUsers);
         addListItemDialogFragment.setArguments(bundle);
 
         return addListItemDialogFragment;
@@ -79,16 +85,19 @@ public class AddListItemDialogFragment extends EditListDialogFragment {
             updatedItemToAddMap.put("/" + Constants.FIREBASE_LOCATION_SHOPPING_LIST_ITEMS + "/"
                     + mListId + "/" + itemId, itemToAdd);
 
-            /* Make the timestamp for last changed */
-            HashMap<String, Object> changedTimestampMap = new HashMap<>();
-            changedTimestampMap.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
-
-            /* Add the updated timestamp */
-            updatedItemToAddMap.put("/" + Constants.FIREBASE_LOCATION_ACTIVE_LISTS +
-                    "/" + mListId + "/" + Constants.FIREBASE_PROPERTY_TIMESTAMP_LAST_CHANGED, changedTimestampMap);
+            /* Update affected lists timestamps */
+                        Utils.updateMapWithTimestampLastChanged(mSharedWith,
+                                mListId, mOwner, updatedItemToAddMap);
 
             /* Do the update */
-            firebaseRef.updateChildren(updatedItemToAddMap);
+            firebaseRef.updateChildren(updatedItemToAddMap, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    /* Updates the reversed timestamp */
+                    Utils.updateTimestampReversed(databaseError, "AddListItem", mListId,
+                            mSharedWith, mOwner);
+                }
+            });
 
             /**
              * Close the dialog fragment when done

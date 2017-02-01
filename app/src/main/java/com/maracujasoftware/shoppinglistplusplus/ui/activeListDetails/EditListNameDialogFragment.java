@@ -4,12 +4,15 @@ package com.maracujasoftware.shoppinglistplusplus.ui.activeListDetails;
 import android.app.Dialog;
 import android.os.Bundle;
 
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.maracujasoftware.shoppinglistplusplus.R;
+import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
+import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
 
 import java.util.HashMap;
 
@@ -20,12 +23,15 @@ import java.util.HashMap;
 public class EditListNameDialogFragment extends EditListDialogFragment {
     private static final String LOG_TAG = ActiveListDetailsActivity.class.getSimpleName();
     String mListName;
+
     /**
      * Public static constructor that creates fragment and passes a bundle with data into it when adapter is created
      */
-    public static EditListNameDialogFragment newInstance(ShoppingList shoppingList, String listId, String encodedEmail) {
+    public static EditListNameDialogFragment newInstance(ShoppingList shoppingList, String listId,
+                                                         String encodedEmail,
+                                                         HashMap<String, FireUser> sharedWithUsers) {
         EditListNameDialogFragment editListNameDialogFragment = new EditListNameDialogFragment();
-        Bundle bundle = newInstanceHelper(shoppingList, R.layout.dialog_edit_list, listId, encodedEmail);
+        Bundle bundle = EditListDialogFragment.newInstanceHelper(shoppingList, R.layout.dialog_edit_list, listId, encodedEmail, sharedWithUsers);
         bundle.putString(Constants.KEY_LIST_NAME, shoppingList.getListName());
         editListNameDialogFragment.setArguments(bundle);
         return editListNameDialogFragment;
@@ -61,32 +67,35 @@ public class EditListNameDialogFragment extends EditListDialogFragment {
         /**
          * Set input text to be the current list name if it is not empty
          */
-        if (!inputListName.equals("")) {
+        if (!inputListName.equals("") && mListName != null &&
+                mListId != null && !inputListName.equals(mListName)) {
 
-            if (mListName != null && mListId != null) {
+                DatabaseReference firebaseRef = FirebaseDatabase.getInstance().getReference();
 
                 /**
-                 * If editText input is not equal to the previous name
+                 * Create map and fill it in with deep path multi write operations list
                  */
-                if (!inputListName.equals(mListName)) {
-                    DatabaseReference shoppingListRef = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_LOCATION_ACTIVE_LISTS).child(mListId);
+                HashMap<String, Object> updatedListData = new HashMap<String, Object>();
 
-                    /* Make a Hashmap for the specific properties you are changing */
-                    HashMap<String, Object> updatedProperties = new HashMap<String, Object>();
-                    updatedProperties.put(Constants.FIREBASE_PROPERTY_LIST_NAME, inputListName);
+                /* Add the value to update at the specified property for all lists */
+                Utils.updateMapForAllWithValue(mSharedWith, mListId, mOwner, updatedListData,
+                        Constants.FIREBASE_PROPERTY_LIST_NAME, inputListName);
 
-                    /* Add the timestamp for last changed to the updatedProperties Hashmap */
-                    HashMap<String, Object> changedTimestampMap = new HashMap<>();
-                    changedTimestampMap.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
+             /* Update affected lists timestamps */
+                Utils.updateMapWithTimestampLastChanged(mSharedWith, mListId, mOwner, updatedListData);
 
-                    /* Add the updated timestamp */
-                    updatedProperties.put(Constants.FIREBASE_PROPERTY_TIMESTAMP_LAST_CHANGED, changedTimestampMap);
-
-                    /* Do the update */
-                    shoppingListRef.updateChildren(updatedProperties);
+                /* Do a deep-path update */
+            firebaseRef.updateChildren(updatedListData, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    /* Updates the reversed timestamp */
+                    Utils.updateTimestampReversed(databaseError, LOG_TAG, mListId,
+                            mSharedWith, mOwner);
                 }
+            });
+
             }
         }
 
-    }
+
 }

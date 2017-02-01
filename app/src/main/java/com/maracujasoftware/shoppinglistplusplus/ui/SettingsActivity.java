@@ -1,5 +1,6 @@
 package com.maracujasoftware.shoppinglistplusplus.ui;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -8,6 +9,7 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 
 import com.maracujasoftware.shoppinglistplusplus.R;
+import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
 
 /**
  * SettingsActivity represents preference screen and functionality
@@ -49,6 +51,9 @@ public class SettingsActivity extends PreferenceActivity {
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
             setPreferenceSummary(preference, newValue);
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            SharedPreferences.Editor spe = sharedPref.edit();
+            spe.putString(Constants.KEY_PREF_SORT_ORDER_LISTS, newValue.toString()).apply();
             return true;
         }
 
