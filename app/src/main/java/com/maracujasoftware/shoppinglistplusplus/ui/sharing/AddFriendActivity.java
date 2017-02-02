@@ -10,7 +10,7 @@ import android.widget.ListView;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.ui.BaseActivity;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
 
@@ -42,7 +42,7 @@ public class AddFriendActivity extends BaseActivity {
         /**
          * Set interactive bits, such as click events/adapters
          */
-       /* mFriendsAutocompleteAdapter = new AutocompleteFriendAdapter(AddFriendActivity.this, FireUser.class,
+       /* mFriendsAutocompleteAdapter = new AutocompleteFriendAdapter(AddFriendActivity.this, User.class,
                 R.layout.single_autocomplete_item, mUsersRef.orderByChild(Constants.FIREBASE_PROPERTY_EMAIL),
                 mEncodedEmail);
 
@@ -70,7 +70,7 @@ public class AddFriendActivity extends BaseActivity {
 
             /* Define and set the adapter otherwise. */
                 } else {
-                    mFriendsAutocompleteAdapter = new AutocompleteFriendAdapter(AddFriendActivity.this, FireUser.class,
+                    mFriendsAutocompleteAdapter = new AutocompleteFriendAdapter(AddFriendActivity.this, User.class,
                             R.layout.single_autocomplete_item, mUsersRef.orderByChild(Constants.FIREBASE_PROPERTY_EMAIL)
                             .startAt(mInput).endAt(mInput + "~").limitToFirst(5), mEncodedEmail);
 

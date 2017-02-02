@@ -16,7 +16,7 @@ public class ShoppingList {
     private HashMap<String, Object> timestampLastChanged;
     private HashMap<String, Object> timestampCreated;
     private HashMap<String, Object> timestampLastChangedReverse;
-    private HashMap<String, FireUser> usersShopping;
+    private HashMap<String, User> usersShopping;
 
     /**
      * Required public constructor

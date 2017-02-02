@@ -16,10 +16,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingListItem;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
@@ -35,7 +34,7 @@ public class ActiveListItemAdapter extends FirebaseListAdapter<ShoppingListItem>
     private ShoppingList mShoppingList;
     private String mListId;
     private String mEncodedEmail;
-    private HashMap<String, FireUser> mSharedWithUsers;
+    private HashMap<String, User> mSharedWithUsers;
 
     /**
      * Public constructor that initializes private instance variables when adapter is created
@@ -56,7 +55,7 @@ public class ActiveListItemAdapter extends FirebaseListAdapter<ShoppingListItem>
         this.notifyDataSetChanged();
     }
 
-    public void setSharedWithUsers(HashMap<String, FireUser> sharedWithUsers) {
+    public void setSharedWithUsers(HashMap<String, User> sharedWithUsers) {
         this.mSharedWithUsers = sharedWithUsers;
         this.notifyDataSetChanged();
     }
@@ -165,7 +164,7 @@ public class ActiveListItemAdapter extends FirebaseListAdapter<ShoppingListItem>
                 boughtByUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        FireUser user = dataSnapshot.getValue(FireUser.class);
+                        User user = dataSnapshot.getValue(User.class);
                         if (user != null) {
                             textViewBoughtByUser.setText(user.getName());
                         }

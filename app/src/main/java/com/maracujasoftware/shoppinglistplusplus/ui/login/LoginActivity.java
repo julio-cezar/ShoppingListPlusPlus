@@ -3,13 +3,10 @@ package com.maracujasoftware.shoppinglistplusplus.ui.login;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -20,19 +17,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.auth.GoogleAuthException;
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.auth.UserRecoverableAuthException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.SignInButton;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -48,14 +38,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.ui.BaseActivity;
 import com.maracujasoftware.shoppinglistplusplus.ui.MainActivity;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
 import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
 
-import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents Sign in screen and functionality of the app
@@ -81,7 +71,7 @@ public class LoginActivity extends BaseActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private User user;
+    private ThiUser user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -194,7 +184,7 @@ public class LoginActivity extends BaseActivity {
                                         HashMap<String, Object> timestampJoined = new HashMap<>();
                                         timestampJoined.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
 
-                                        FireUser newUser = new FireUser(userName, mEncodedEmail, timestampJoined);
+                                        User newUser = new User(userName, mEncodedEmail, timestampJoined);
                                         userLocation.setValue(newUser);
                                     }
                                 }
@@ -242,7 +232,7 @@ public class LoginActivity extends BaseActivity {
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                FireUser user = dataSnapshot.getValue(FireUser.class);
+                User user = dataSnapshot.getValue(User.class);
 
                 if (user != null) {
 
@@ -284,10 +274,9 @@ public class LoginActivity extends BaseActivity {
         });
 
 
-
     }
 
-    private void setAuthenticatedUserGoogle(UserInfo profile) {
+    private void setAuthenticatedUserGoogle(final UserInfo profile) {
 /**
  * If google api client is connected, get the lowerCase user email
  * and save in sharedPreferences
@@ -315,28 +304,42 @@ public class LoginActivity extends BaseActivity {
             /* Get username from authData */
         final String userName = (String) profile.getDisplayName();
         final DatabaseReference userLocation = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_LOCATION_USERS).child(mEncodedEmail);
-        userLocation.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.getValue() == null) {
-                    HashMap<String, Object> timestampJoined = new HashMap<>();
-                    timestampJoined.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
+        // userLocation.addListenerForSingleValueEvent(new ValueEventListener() {
+        //   @Override
+        // public void onDataChange(DataSnapshot dataSnapshot) {
+        //   if (dataSnapshot.getValue() == null) {
+        HashMap<String, Object> userAndUidMapping = new HashMap<String, Object>();
 
-                    FireUser newUser = new FireUser(userName, mEncodedEmail, timestampJoined);
-                    userLocation.setValue(newUser);
+        HashMap<String, Object> timestampJoined = new HashMap<>();
+        timestampJoined.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
+
+                     /* Create a HashMap version of the user to add */
+        User newUser = new User(userName, mEncodedEmail, timestampJoined);
+        //userLocation.setValue(newUser);
+        HashMap<String, Object> newUserMap = (HashMap<String, Object>)
+                new ObjectMapper().convertValue(newUser, Map.class);
+
+                    /* Add the user and UID to the update map */
+        userAndUidMapping.put("/" + Constants.FIREBASE_LOCATION_USERS + "/" + mEncodedEmail,
+                newUserMap);
+        userAndUidMapping.put("/" + Constants.FIREBASE_LOCATION_UID_MAPPINGS + "/" +
+                profile.getUid(), mEncodedEmail);
+
+                    /* Update the database */
+        mFirebaseRef.updateChildren(userAndUidMapping, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError != null) {
+                                                    /* Try just making a uid mapping */
+                    mFirebaseRef.child(Constants.FIREBASE_LOCATION_UID_MAPPINGS)
+                            .child(profile.getUid()).setValue(mEncodedEmail);
                 }
             }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.d(LOG_TAG, getString(R.string.log_error_occurred) + databaseError.getMessage());
-
-            }
         });
-
     }
 
-    private boolean isNameOk(User user, FirebaseUser firebaseUser) {
+
+    private boolean isNameOk(ThiUser user, FirebaseUser firebaseUser) {
         return (
                 user.getName() != null
                         || firebaseUser.getDisplayName() != null
@@ -468,7 +471,7 @@ public class LoginActivity extends BaseActivity {
             return;
         }
         mAuthProgressDialog.show();
-        user = new User();
+        user = new ThiUser();
         user.setEmail(email);
         user.setPassword(password);
         verifyLogin();
@@ -489,7 +492,7 @@ public class LoginActivity extends BaseActivity {
      * https://github.com/googlesamples/google-services/blob/master/android/signin/app/src/main/java/com/google/samples/quickstart/signin/SignInActivity.java
      * <p>
      * The big picture steps are:
-     * 1. FireUser clicks the sign in with Google button
+     * 1. User clicks the sign in with Google button
      * 2. An intent is started for sign in.
      * - If the connection fails it is caught in the onConnectionFailed callback
      * - If it finishes, onActivityResult is called with the correct request code.

@@ -13,7 +13,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
 
@@ -89,7 +89,7 @@ public class ActiveListAdapter extends FirebaseListAdapter<ShoppingList> {
                 userRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        FireUser user = dataSnapshot.getValue(FireUser.class);
+                        User user = dataSnapshot.getValue(User.class);
 
                         if (user != null) {
                             textViewCreatedByUser.setText(user.getName());

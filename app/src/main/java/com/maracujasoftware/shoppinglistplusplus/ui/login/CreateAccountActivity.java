@@ -14,6 +14,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -27,7 +28,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.ui.BaseActivity;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
 import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
@@ -49,11 +50,11 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
-    private User user;
+    private ThiUser user;
 
     private SecureRandom mRandom = new SecureRandom();
 
-    private void saveUser(){
+    private void saveUser() {
 
         mAuth.createUserWithEmailAndPassword(
                 user.getEmail(),
@@ -62,59 +63,101 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
 
-                if( !task.isSuccessful() ){
+                if (!task.isSuccessful()) {
                     mAuthProgressDialog.dismiss();
-                }else{
-                    FirebaseAuth auth = FirebaseAuth.getInstance();
+                } else {
+                    final FirebaseAuth auth = FirebaseAuth.getInstance();
                     auth.sendPasswordResetEmail(user.getEmail()).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
                                 Log.i(LOG_TAG, getString(R.string.log_message_auth_successful));
 
-                                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CreateAccountActivity.this);
-                                SharedPreferences.Editor spe = sp.edit();
+                                // SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CreateAccountActivity.this);
+                                // SharedPreferences.Editor spe = sp.edit();
 
                                 /**
-                                 * Save name and email to sharedPreferences to create User database record
+                                 * Save name and email to sharedPreferences to create ThiUser database record
                                  * when the registered user will sign in for the first time
                                  */
-                                spe.putString(Constants.KEY_SIGNUP_EMAIL, mUserEmail).apply();
+                                //spe.putString(Constants.KEY_SIGNUP_EMAIL, mUserEmail).apply();
 
                                 /**
                                  * Encode user email replacing "." with ","
                                  * to be able to use it as a Firebase db key
                                  */
-                                createUserInFirebaseHelper();
+                                // createUserInFirebaseHelper();
 
                                 /**
                                  *  Password reset email sent, open app chooser to pick app
                                  *  for handling inbox email intent
                                  */
-                                Intent intent = new Intent(Intent.ACTION_MAIN);
-                                intent.addCategory(Intent.CATEGORY_APP_EMAIL);
-                                try {
+                                // Intent intent = new Intent(Intent.ACTION_MAIN);
+                                //intent.addCategory(Intent.CATEGORY_APP_EMAIL);
+                                /*try {
                                     startActivity(intent);
                                     finish();
-                                } catch (android.content.ActivityNotFoundException ex) {
-                                    /* User does not have any app to handle email */
-                                }
-                            } else{
-                                Log.d(LOG_TAG, getString(R.string.log_error_occurred) );
+                                } catch (android.content.ActivityNotFoundException ex) {*/
+                                //    /* ThiUser does not have any app to handle email */
+                                //}
+
+                                auth.signInWithEmailAndPassword(mUserEmail, mPassword).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<AuthResult> task) {
+                                        if (!task.isSuccessful()) {
+
+                                            mAuthProgressDialog.dismiss();
+                                            Log.i(LOG_TAG, getString(R.string.log_message_auth_successful));
+
+                                            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(CreateAccountActivity.this);
+                                            SharedPreferences.Editor spe = sp.edit();
+
+                                            /* Save name and email to sharedPreferences to create ThiUser database record
+                                                    * when the registered user will sign in for the first time
+                                                    */
+                                            spe.putString(Constants.KEY_SIGNUP_EMAIL, mUserEmail).apply();
+
+                                            /**
+                                             * Encode user email replacing "." with ","
+                                             * to be able to use it as a Firebase db key
+                                             */
+                                            createUserInFirebaseHelper((String) task.getResult().getUser().getUid());
+                                            /**
+                                             *  Password reset email sent, open app chooser to pick app
+                                             *  for handling inbox email intent
+                                             */
+                                            Intent intent = new Intent(Intent.ACTION_MAIN);
+                                            intent.addCategory(Intent.CATEGORY_APP_EMAIL);
+                                            try {
+                                                startActivity(intent);
+                                                finish();
+                                            } catch (android.content.ActivityNotFoundException ex) {
+                                            /* ThiUser does not have any app to handle email */
+                                            }
+
+                                        } else {
+                                            showToast("Login falhou");
+                                            mAuthProgressDialog.dismiss();
+                                            Log.e(LOG_TAG, task.getException().toString());
+                                        }
+                                    }
+                                });
+                            } else {
+                                Log.d(LOG_TAG, getString(R.string.log_error_occurred));
                                 mAuthProgressDialog.dismiss();
                             }
                         }
                     });
 
-                   // String uid = (String) task.getResult().getUser().getUid();
-                    createUserInFirebaseHelper();
+                    // String uid = (String) task.getResult().getUser().getUid();
+                    //createUserInFirebaseHelper();
                 }
 
             }
         }).addOnFailureListener(this, new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                showToast( e.getMessage() );
+                showToast(e.getMessage());
             }
         });
     }
@@ -179,7 +222,7 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
     public void initializeScreen() {
         mEditTextUsernameCreate = (EditText) findViewById(R.id.edit_text_username_create);
         mEditTextEmailCreate = (EditText) findViewById(R.id.edit_text_email_create);
-       // mEditTextPasswordCreate = (EditText) findViewById(R.id.edit_text_password_create);
+        // mEditTextPasswordCreate = (EditText) findViewById(R.id.edit_text_password_create);
         LinearLayout linearLayoutCreateAccountActivity = (LinearLayout) findViewById(R.id.linear_layout_create_account_activity);
         initializeBackground(linearLayoutCreateAccountActivity);
 
@@ -208,7 +251,7 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
         mUserName = mEditTextUsernameCreate.getText().toString();
         mUserEmail = mEditTextEmailCreate.getText().toString().toLowerCase();
         mPassword = new BigInteger(130, mRandom).toString(32);
-       // mPassword = mEditTextPasswordCreate.getText().toString();
+        // mPassword = mEditTextPasswordCreate.getText().toString();
 
         /**
          * Check that email and user name are okay
@@ -225,7 +268,7 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
          */
         mAuthProgressDialog.show();
 
-        user = new User();
+        user = new ThiUser();
         user.setName(mUserName);
         user.setEmail(mUserEmail);
         user.setPassword(mPassword);
@@ -238,33 +281,65 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
     /**
      * Creates a new user in Firebase from the Java POJO
      */
-    private void createUserInFirebaseHelper( ) {
+    private void createUserInFirebaseHelper(final String authUserId) {
         final String encodedEmail = Utils.encodeEmail(mUserEmail);
-        final DatabaseReference userLocation = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_LOCATION_USERS).child(encodedEmail);
+        // final DatabaseReference userLocation = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_LOCATION_USERS).child(encodedEmail);
         /**
          * See if there is already a user (for example, if they already logged in with an associated
          * Google account.
          */
-        userLocation.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+        //userLocation.addListenerForSingleValueEvent(new ValueEventListener() {
+        //  @Override
+        //public void onDataChange(DataSnapshot dataSnapshot) {
                         /* If there is no user, make one */
-                if (dataSnapshot.getValue() == null) {
+        //  if (dataSnapshot.getValue() == null) {
+        HashMap<String, Object> userAndUidMapping = new HashMap<String, Object>();
+
                  /* Set raw version of date to the ServerValue.TIMESTAMP value and save into dateCreatedMap */
-                    HashMap<String, Object> timestampJoined = new HashMap<>();
-                    timestampJoined.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
+        HashMap<String, Object> timestampJoined = new HashMap<>();
+        timestampJoined.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
 
-                    FireUser newUser = new FireUser(mUserName, encodedEmail, timestampJoined);
-                    userLocation.setValue(newUser);
-                }
-            }
+                    /* Create a HashMap version of the user to add */
+        User newUser = new User(mUserName, encodedEmail, timestampJoined);
+        //userLocation.setValue(newUser);
+        HashMap<String, Object> newUserMap = (HashMap<String, Object>)
+                new ObjectMapper().convertValue(newUser, Map.class);
 
+                    /* Add the user and UID to the update map */
+        userAndUidMapping.put("/" + Constants.FIREBASE_LOCATION_USERS + "/" + encodedEmail,
+                newUserMap);
+        userAndUidMapping.put("/" + Constants.FIREBASE_LOCATION_UID_MAPPINGS + "/"
+                + authUserId, encodedEmail);
+
+                    /* Update the database */
+        // mFirebaseRef.updateChildren(userAndUidMapping);
+
+        /* Try to update the database; if there is already a user, this will fail */
+        mFirebaseRef.updateChildren(userAndUidMapping, new DatabaseReference.CompletionListener() {
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.d(LOG_TAG, getString(R.string.log_error_occurred) + databaseError.getMessage());
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError != null) {
+                     /* Try just making a uid mapping */
+                    mFirebaseRef.child(Constants.FIREBASE_LOCATION_UID_MAPPINGS)
+                            .child(authUserId).setValue(encodedEmail);
+                }
+                /**
+                 +                 *  The value has been set or it failed; either way, log out the user since
+                 +                 *  they were only logged in with a temp password
+                 +                 **/
+
+                FirebaseAuth.getInstance().signOut();
 
             }
         });
+
+
+        //@Override
+        //public void onCancelled(DatabaseError databaseError) {
+        //  Log.d(LOG_TAG, getString(R.string.log_error_occurred) + databaseError.getMessage());
+        //}
+
+
     }
 
     private boolean isEmailValid(String email) {
@@ -304,7 +379,7 @@ public class CreateAccountActivity extends BaseActivity implements DatabaseRefer
     @Override
     public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
         mAuth.signOut();
-        showToast( getResources().getString(R.string.account_created));
+        showToast(getResources().getString(R.string.account_created));
         mAuthProgressDialog.dismiss();
         finish();
     }

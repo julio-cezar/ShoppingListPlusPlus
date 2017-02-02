@@ -12,7 +12,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
 import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
@@ -34,7 +34,7 @@ public class RemoveListDialogFragment extends DialogFragment {
      * Public static constructor that creates fragment and passes a bundle with data into it when adapter is created
      */
     public static RemoveListDialogFragment newInstance(ShoppingList shoppingList, String listId,
-                                                       HashMap<String, FireUser> sharedWithUsers) {
+                                                       HashMap<String, User> sharedWithUsers) {
         RemoveListDialogFragment removeListDialogFragment = new RemoveListDialogFragment();
         Bundle bundle = new Bundle();
         bundle.putString(Constants.KEY_LIST_ID, listId);
@@ -91,6 +91,9 @@ public class RemoveListDialogFragment extends DialogFragment {
         /* Remove the associated list items */
         removeListData.put("/" + Constants.FIREBASE_LOCATION_SHOPPING_LIST_ITEMS + "/" + mListId,
                 null);
+
+        removeListData.put("/" + Constants.FIREBASE_LOCATION_OWNER_MAPPINGS + "/" + mListId,
+                                null);
 
 
         /* Do a deep-path update */

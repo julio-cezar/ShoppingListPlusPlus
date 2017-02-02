@@ -13,8 +13,8 @@ import java.util.Map;
 /**
  * Created by julio on 5/29/2016.
  */
-public class User {
-    public static String PROVIDER = "br.com.maracujas.domain.FireUser.PROVIDER";
+public class ThiUser {
+    public static String PROVIDER = "br.com.maracujas.domain.User.PROVIDER";
 
     private String id;
     private String name;
@@ -23,7 +23,7 @@ public class User {
     private String newPassword;
 
 
-    public User(){}
+    public ThiUser(){}
 
 
 

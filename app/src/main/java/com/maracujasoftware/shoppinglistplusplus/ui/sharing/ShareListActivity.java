@@ -13,7 +13,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.ui.BaseActivity;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
@@ -31,7 +31,7 @@ public class ShareListActivity extends BaseActivity {
     private String mListId;
     private DatabaseReference mActiveListRef, mSharedWithRef;
     private ValueEventListener mActiveListRefListener, mSharedWithListener;
-    private HashMap<String, FireUser> mSharedWithUsers;
+    private HashMap<String, User> mSharedWithUsers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,9 +94,9 @@ public class ShareListActivity extends BaseActivity {
         mSharedWithListener = mSharedWithRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                mSharedWithUsers = new HashMap<String, FireUser>();
+                mSharedWithUsers = new HashMap<String, User>();
                 for (DataSnapshot currentUser : dataSnapshot.getChildren()) {
-                    mSharedWithUsers.put(currentUser.getKey(), currentUser.getValue(FireUser.class));
+                    mSharedWithUsers.put(currentUser.getKey(), currentUser.getValue(User.class));
                 }
                 mFriendAdapter.setSharedWithUsers(mSharedWithUsers);
             }
@@ -113,7 +113,7 @@ public class ShareListActivity extends BaseActivity {
         /**
          * Set interactive bits, such as click events/adapters
          */
-        mFriendAdapter = new FriendAdapter(ShareListActivity.this, FireUser.class,
+        mFriendAdapter = new FriendAdapter(ShareListActivity.this, User.class,
                 R.layout.single_user_item, currentUserFriendsRef, mListId);
 
                         /* Set adapter for the listView */

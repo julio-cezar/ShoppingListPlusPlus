@@ -10,7 +10,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 
 import java.text.SimpleDateFormat;
@@ -63,7 +63,7 @@ public class Utils {
      * @return The updated HashMap with the new value inserted in all lists
      */
     public static HashMap<String, Object> updateMapForAllWithValue
-    (final HashMap<String, FireUser> sharedWith, final String listId,
+    (final HashMap<String, User> sharedWith, final String listId,
      final String owner, HashMap<String, Object> mapToUpdate,
      String propertyToUpdate, Object valueToUpdate) {
 
@@ -71,7 +71,7 @@ public class Utils {
                 + listId + "/" + propertyToUpdate, valueToUpdate);
 
         if (sharedWith != null) {
-                        for (FireUser user : sharedWith.values()) {
+                        for (User user : sharedWith.values()) {
                                 mapToUpdate.put("/" + Constants.FIREBASE_LOCATION_USER_LISTS + "/" + user.getEmail() + "/"
                                                 + listId + "/" + propertyToUpdate, valueToUpdate);
                             }
@@ -93,7 +93,7 @@ public class Utils {
      * @return
      */
     public static HashMap<String, Object> updateMapWithTimestampLastChanged
-    (final HashMap<String, FireUser> sharedWith, final String listId,
+    (final HashMap<String, User> sharedWith, final String listId,
      final String owner, HashMap<String, Object> mapToAddDateToUpdate) {
         /**
          * Set raw version of date to the ServerValue.TIMESTAMP value and save into dateCreatedMap
@@ -122,7 +122,7 @@ public class Utils {
      * @param owner              The owner of the updated shopping list
      */
     public static void updateTimestampReversed(DatabaseError firebaseError, final String logTagFromActivity,
-                                               final String listId, final HashMap<String, FireUser> sharedWith,
+                                               final String listId, final HashMap<String, User> sharedWith,
                                                final String owner) {
         if (firebaseError != null) {
             Log.d(logTagFromActivity, "Error updating timestamp: " + firebaseError.getMessage());

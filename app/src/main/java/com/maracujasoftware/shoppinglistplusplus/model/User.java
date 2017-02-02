@@ -3,9 +3,9 @@ package com.maracujasoftware.shoppinglistplusplus.model;
 import java.util.HashMap;
 
 /**
- * Defines the data structure for FireUser objects.
+ * Defines the data structure for User objects.
  */
-public class FireUser {
+public class User {
     private String name;
     private String email;
     private HashMap<String, Object> timestampJoined;
@@ -15,18 +15,18 @@ public class FireUser {
     /**
      * Required public constructor
      */
-    public FireUser() {
+    public User() {
     }
 
     /**
-     * Use this constructor to create new FireUser.
+     * Use this constructor to create new User.
      * Takes user name, email and timestampJoined as params
      *
      * @param name
      * @param email
      * @param timestampJoined
      */
-    public FireUser(String name, String email, HashMap<String, Object> timestampJoined) {
+    public User(String name, String email, HashMap<String, Object> timestampJoined) {
         this.name = name;
         this.email = email;
         this.timestampJoined = timestampJoined;

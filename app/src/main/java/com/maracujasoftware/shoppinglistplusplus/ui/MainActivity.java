@@ -14,17 +14,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.ui.activeLists.AddListDialogFragment;
 import com.maracujasoftware.shoppinglistplusplus.ui.activeLists.ShoppingListsFragment;
-import com.maracujasoftware.shoppinglistplusplus.ui.login.LoginActivity;
 import com.maracujasoftware.shoppinglistplusplus.ui.meals.AddMealDialogFragment;
 import com.maracujasoftware.shoppinglistplusplus.ui.meals.MealsFragment;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
@@ -47,7 +45,7 @@ public class MainActivity extends BaseActivity {
         mUserRefListener = mUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                FireUser user = dataSnapshot.getValue(FireUser.class);
+                User user = dataSnapshot.getValue(User.class);
 
                 if (user != null) {
                     String firstName = user.getName().split("\\s+")[0];

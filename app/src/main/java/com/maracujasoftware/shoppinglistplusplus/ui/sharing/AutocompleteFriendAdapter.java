@@ -14,20 +14,20 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
 import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
 
 /**
  * Populates the list_view_friends_autocomplete inside AddFriendActivity
  */
-public class AutocompleteFriendAdapter extends FirebaseListAdapter<FireUser> {
+public class AutocompleteFriendAdapter extends FirebaseListAdapter<User> {
     private String mEncodedEmail;
 
     /**
      * Public constructor that initializes private instance variables when adapter is created
      */
-    public AutocompleteFriendAdapter(Activity activity, Class<FireUser> modelClass, int modelLayout,
+    public AutocompleteFriendAdapter(Activity activity, Class<User> modelClass, int modelLayout,
                                      Query ref, String encodedEmail) {
         super(activity, modelClass, modelLayout, ref);
         this.mActivity = activity;
@@ -41,7 +41,7 @@ public class AutocompleteFriendAdapter extends FirebaseListAdapter<FireUser> {
      * populateView also handles data changes and updates the listView accordingly
      */
     @Override
-    protected void populateView(View view,final FireUser user, int position) {
+    protected void populateView(View view, final User user, int position) {
    /* Get friends email textview and set it's text to user.email() */
         TextView textViewFriendEmail = (TextView) view.findViewById(R.id.text_view_autocomplete_item);
         textViewFriendEmail.setText(Utils.decodeEmail(user.getEmail()));
@@ -94,7 +94,7 @@ public class AutocompleteFriendAdapter extends FirebaseListAdapter<FireUser> {
     }
 
     /** Checks if the friend you try to add is the current user **/
-    private boolean isNotCurrentUser(FireUser user) {
+    private boolean isNotCurrentUser(User user) {
         if (user.getEmail().equals(mEncodedEmail)) {
             /* Toast appropriate error message if the user is trying to add themselves  */
             Toast.makeText(mActivity,
@@ -106,8 +106,8 @@ public class AutocompleteFriendAdapter extends FirebaseListAdapter<FireUser> {
     }
 
     /** Checks if the friend you try to add is already added, given a dataSnapshot of a user **/
-    private boolean isNotAlreadyAdded(DataSnapshot dataSnapshot, FireUser user) {
-        if (dataSnapshot.getValue(FireUser.class) != null) {
+    private boolean isNotAlreadyAdded(DataSnapshot dataSnapshot, User user) {
+        if (dataSnapshot.getValue(User.class) != null) {
             /* Toast appropriate error message if the user is already a friend of the user */
             String friendError = String.format(mActivity.getResources().
                             getString(R.string.toast_is_already_your_friend),

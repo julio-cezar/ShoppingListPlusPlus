@@ -7,9 +7,8 @@ package com.maracujasoftware.shoppinglistplusplus.ui.activeListDetails;
         import com.google.firebase.database.DatabaseError;
         import com.google.firebase.database.DatabaseReference;
         import com.google.firebase.database.FirebaseDatabase;
-        import com.google.firebase.database.ServerValue;
         import com.maracujasoftware.shoppinglistplusplus.R;
-        import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+        import com.maracujasoftware.shoppinglistplusplus.model.User;
         import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
         import com.maracujasoftware.shoppinglistplusplus.model.ShoppingListItem;
         import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
@@ -29,7 +28,7 @@ public class AddListItemDialogFragment extends EditListDialogFragment {
      */
     public static AddListItemDialogFragment newInstance(ShoppingList shoppingList,  String listId,
                                                         String encodedEmail,
-                                                        HashMap<String, FireUser> sharedWithUsers) {
+                                                        HashMap<String, User> sharedWithUsers) {
         AddListItemDialogFragment addListItemDialogFragment = new AddListItemDialogFragment();
 
         Bundle bundle = EditListDialogFragment.newInstanceHelper(shoppingList,

@@ -15,7 +15,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
 import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
@@ -26,12 +26,12 @@ import java.util.Map;
 /**
  * Populates the list_view_friends_share inside ShareListActivity
  */
-public class FriendAdapter extends FirebaseListAdapter<FireUser> {
+public class FriendAdapter extends FirebaseListAdapter<User> {
     private ShoppingList mShoppingList;
     private static final String LOG_TAG = FriendAdapter.class.getSimpleName();
     private String mListId;
     private DatabaseReference mFirebaseRef;
-    private HashMap<String, FireUser> mSharedUsersList;
+    private HashMap<String, User> mSharedUsersList;
 
     private HashMap<DatabaseReference, ValueEventListener> mLocationListenerMap;
 
@@ -39,7 +39,7 @@ public class FriendAdapter extends FirebaseListAdapter<FireUser> {
     /**
      * Public constructor that initializes private instance variables when adapter is created
      */
-    public FriendAdapter(Activity activity, Class<FireUser> modelClass, int modelLayout,
+    public FriendAdapter(Activity activity, Class<User> modelClass, int modelLayout,
                          Query ref, String listId) {
         super(activity, modelClass, modelLayout, ref);
         this.mActivity = activity;
@@ -54,7 +54,7 @@ public class FriendAdapter extends FirebaseListAdapter<FireUser> {
      * populateView also handles data changes and updates the listView accordingly
      */
     @Override
-    protected void populateView(View view, final FireUser friend, int position) {
+    protected void populateView(View view, final User friend, int position) {
         ((TextView) view.findViewById(R.id.user_name)).setText(friend.getName());
         final ImageButton buttonToggleShare = (ImageButton) view.findViewById(R.id.button_toggle_share);
 
@@ -64,7 +64,7 @@ public class FriendAdapter extends FirebaseListAdapter<FireUser> {
         ValueEventListener listener = sharedFriendInShoppingListRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
-                final FireUser sharedFriendInShoppingList = snapshot.getValue(FireUser.class);
+                final User sharedFriendInShoppingList = snapshot.getValue(User.class);
 
                 /**
                  * If list is already being shared with this friend, set the buttonToggleShare
@@ -147,7 +147,7 @@ public class FriendAdapter extends FirebaseListAdapter<FireUser> {
     /**
      * Public method that is used to pass SharedUsers when they are loaded in ValueEventListener
      */
-    public void setSharedWithUsers(HashMap<String, FireUser> sharedUsersList) {
+    public void setSharedWithUsers(HashMap<String, User> sharedUsersList) {
         this.mSharedUsersList = sharedUsersList;
         this.notifyDataSetChanged();
     }
@@ -160,11 +160,11 @@ public class FriendAdapter extends FirebaseListAdapter<FireUser> {
      * @param friendToAddOrRemove This is the friend to either add or remove
      * @return
      */
-    private HashMap<String, Object> updateFriendInSharedWith(Boolean addFriend, FireUser friendToAddOrRemove) {
+    private HashMap<String, Object> updateFriendInSharedWith(Boolean addFriend, User friendToAddOrRemove) {
         HashMap<String, Object> updatedUserData = new HashMap<String, Object>();
 
         /* The newSharedWith lists contains all users who need their last time changed updated */
-        HashMap<String, FireUser> newSharedWith = new HashMap<String, FireUser>(mSharedUsersList);
+        HashMap<String, User> newSharedWith = new HashMap<String, User>(mSharedUsersList);
 
         /* Update the sharedWith List for this Shopping List */
         if (addFriend) {

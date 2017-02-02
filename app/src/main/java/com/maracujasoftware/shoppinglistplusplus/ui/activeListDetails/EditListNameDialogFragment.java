@@ -7,9 +7,8 @@ import android.os.Bundle;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
 import com.maracujasoftware.shoppinglistplusplus.utils.Utils;
@@ -29,7 +28,7 @@ public class EditListNameDialogFragment extends EditListDialogFragment {
      */
     public static EditListNameDialogFragment newInstance(ShoppingList shoppingList, String listId,
                                                          String encodedEmail,
-                                                         HashMap<String, FireUser> sharedWithUsers) {
+                                                         HashMap<String, User> sharedWithUsers) {
         EditListNameDialogFragment editListNameDialogFragment = new EditListNameDialogFragment();
         Bundle bundle = EditListDialogFragment.newInstanceHelper(shoppingList, R.layout.dialog_edit_list, listId, encodedEmail, sharedWithUsers);
         bundle.putString(Constants.KEY_LIST_NAME, shoppingList.getListName());

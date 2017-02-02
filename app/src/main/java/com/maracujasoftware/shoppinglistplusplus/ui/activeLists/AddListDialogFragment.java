@@ -161,6 +161,10 @@ public class AddListDialogFragment extends DialogFragment {
             Utils.updateMapForAllWithValue(null,listId, mEncodedEmail,
                     updateShoppingListData, "", shoppingListMap);
 
+            updateShoppingListData.put("/" + Constants.FIREBASE_LOCATION_OWNER_MAPPINGS + "/" + listId,
+                                        mEncodedEmail);
+
+                /* Do the update */
             firebaseRef.updateChildren(updateShoppingListData, new DatabaseReference.CompletionListener() {
                 @Override
                 public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {

@@ -22,7 +22,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingListItem;
 import com.maracujasoftware.shoppinglistplusplus.ui.BaseActivity;
@@ -47,12 +47,12 @@ public class ActiveListDetailsActivity extends BaseActivity {
     private TextView mTextViewPeopleShopping;
     private ListView mListView;
     private String mListId;
-    private FireUser mCurrentUser;
+    private User mCurrentUser;
     private boolean mShopping = false;/* Stores whether the current user is shopping */
     private boolean mCurrentUserIsOwner = false;
     private ShoppingList mShoppingList;
     private ValueEventListener mCurrentListRefListener, mCurrentUserRefListener, mSharedWithListener;
-    private HashMap<String, FireUser> mSharedWithUsers;
+    private HashMap<String, User> mSharedWithUsers;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -101,7 +101,7 @@ public class ActiveListDetailsActivity extends BaseActivity {
         mCurrentUserRefListener = mCurrentUserRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                FireUser currentUser = dataSnapshot.getValue(FireUser.class);
+                User currentUser = dataSnapshot.getValue(User.class);
                 if (currentUser != null) mCurrentUser = currentUser;
                 else finish();
             }
@@ -147,7 +147,7 @@ public class ActiveListDetailsActivity extends BaseActivity {
                 /* Set title appropriately. */
                 setTitle(shoppingList.getListName());
 
-                HashMap<String, FireUser> usersShopping = mShoppingList.getUsersShopping();
+                HashMap<String, User> usersShopping = mShoppingList.getUsersShopping();
                 if (usersShopping != null && usersShopping.size() != 0 &&
                         usersShopping.containsKey(mEncodedEmail)) {
                     mShopping = true;
@@ -172,9 +172,9 @@ public class ActiveListDetailsActivity extends BaseActivity {
         mSharedWithListener = mSharedWithRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                mSharedWithUsers = new HashMap<String, FireUser>();
+                mSharedWithUsers = new HashMap<String, User>();
                 for (DataSnapshot currentUser : dataSnapshot.getChildren()) {
-                    mSharedWithUsers.put(currentUser.getKey(), currentUser.getValue(FireUser.class));
+                    mSharedWithUsers.put(currentUser.getKey(), currentUser.getValue(User.class));
                 }
                 mActiveListItemAdapter.setSharedWithUsers(mSharedWithUsers);
             }
@@ -366,7 +366,7 @@ public class ActiveListDetailsActivity extends BaseActivity {
      * Set appropriate text for Start/Stop shopping button and Who's shopping textView
      * depending on the current user shopping status
      */
-    private void setWhosShoppingText(HashMap<String, FireUser> usersShopping) {
+    private void setWhosShoppingText(HashMap<String, User> usersShopping) {
 
         if (usersShopping != null) {
             ArrayList<String> usersWhoAreNotYou = new ArrayList<>();
@@ -374,7 +374,7 @@ public class ActiveListDetailsActivity extends BaseActivity {
              * If at least one user is shopping
              * Add userName to the list of users shopping if this user is not current user
              */
-            for (FireUser user : usersShopping.values()) {
+            for (User user : usersShopping.values()) {
                 if (user != null && !(user.getEmail().equals(mEncodedEmail))) {
                     usersWhoAreNotYou.add(user.getName());
                 }
@@ -517,7 +517,7 @@ public class ActiveListDetailsActivity extends BaseActivity {
 
         } else {
             /**
-             * If current user is not shopping, create map to represent User model add to usersShopping map
+             * If current user is not shopping, create map to represent ThiUser model add to usersShopping map
              */
             HashMap<String, Object> currentUser = (HashMap<String, Object>)
                     new ObjectMapper().convertValue(mCurrentUser, Map.class);

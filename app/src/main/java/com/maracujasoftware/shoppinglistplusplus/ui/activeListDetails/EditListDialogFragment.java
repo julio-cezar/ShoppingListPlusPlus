@@ -14,7 +14,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.maracujasoftware.shoppinglistplusplus.R;
-import com.maracujasoftware.shoppinglistplusplus.model.FireUser;
+import com.maracujasoftware.shoppinglistplusplus.model.User;
 import com.maracujasoftware.shoppinglistplusplus.model.ShoppingList;
 import com.maracujasoftware.shoppinglistplusplus.utils.Constants;
 
@@ -39,7 +39,7 @@ public abstract class EditListDialogFragment extends DialogFragment {
      * @return
      */
     protected static Bundle newInstanceHelper(ShoppingList shoppingList, int resource, String listId,
-                                              String encodedEmail, HashMap<String, FireUser> sharedWithUsers) {
+                                              String encodedEmail, HashMap<String, User> sharedWithUsers) {
         Bundle bundle = new Bundle();
         bundle.putSerializable(Constants.KEY_SHARED_WITH_USERS, sharedWithUsers);
         bundle.putString(Constants.KEY_LIST_ID, listId);
